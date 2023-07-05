@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 
 from .serializers import Registration_Serializer, Login_Serializer, User_Serializer
+from .permissions import is_authenticated_user
 # Create your views here.
 
 
@@ -62,6 +63,7 @@ def users(request):
 		return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["GET", "PUT", "Delete"])
-def user_(request):
+@is_authenticated_user
+def user_(request, user_obj):
 	if request == "GET":
 		pass
