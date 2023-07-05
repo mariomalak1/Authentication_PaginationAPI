@@ -28,3 +28,8 @@ class Login_Serializer(serializers.Serializer):
 		if not user:
 			raise serializers.ValidationError("Invalid Username or Password")
 		return data
+
+class User_Serializer(serializers.ModelSerializer):
+	class Meta:
+		model = User
+		exclude = ["id", "password"]
