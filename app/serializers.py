@@ -17,3 +17,14 @@ class Registration_Serializer(serializers.Serializer):
 		if user:
 			raise serializers.ValidationError("This Email Is Already Taken Before")
 		return email
+
+
+class Login_Serializer(serializers.Serializer):
+	username = serializers.CharField(max_length=150)
+	password = serializers.CharField(max_length=150)
+
+	def validate(self, data):
+		user = User.objects.filter(username=data.get("username")).first()
+		if not user:
+			raise serializers.ValidationError("Invalid Username or Password")
+		return data
