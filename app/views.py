@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate, login as django_login_user
+from django.contrib.auth import authenticate, login as django_login_user, logout as django_logout_user 
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator	
 from django.shortcuts import get_object_or_404
@@ -12,7 +12,7 @@ from .permissions import is_authenticated_user
 # Create your views here.
 
 
-@api_view(["POST"])
+@api_view(["GET"])
 def login(request):
 	data = request.data
 	serializer = Login_Serializer(data=data)
@@ -63,6 +63,16 @@ def users(request):
 			return Response({"page error": "Enter Valid Page Number"})
 		serializer = User_Serializer(objects_per_page, many=True)
 		return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@is_authenticated_user
+def logout(request, user_obj):
+	token = Token.objects.filter(user=user_obj).first()
+	django_logout_user(request)
+	token.delete()
+	return Response(status=status.HTTP_200_OK)
+
 
 @api_view(["GET", "PATCH", "Delete"])
 @is_authenticated_user
