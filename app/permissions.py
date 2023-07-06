@@ -8,7 +8,7 @@ def is_authenticated_user(func):
 		token = request.data.get("token")
 		if token:
 			user_object = get_object_or_404(Token, key=token).user
-			func(request, user_object)
+			return func(request, user_object)
 		else:
 			return HttpResponseForbidden()
 	return test_token

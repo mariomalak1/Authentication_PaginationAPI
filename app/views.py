@@ -5,7 +5,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
-
+from django.shortcuts import get_object_or_404
 from .serializers import Registration_Serializer, Login_Serializer, User_Serializer
 from .permissions import is_authenticated_user
 # Create your views here.
@@ -62,8 +62,40 @@ def users(request):
 		serializer = User_Serializer(objects_per_page, many=True)
 		return Response(serializer.data, status=status.HTTP_200_OK)
 
-@api_view(["GET", "PUT", "Delete"])
+@api_view(["GET", "PATCH", "Delete"])
 @is_authenticated_user
 def user_(request, user_obj):
-	if request == "GET":
-		pass
+	if request.method == "GET":
+		serializer = User_Serializer(user_obj)
+		return Response(serializer.data, status=status.HTTP_200_OK)
+
+	elif request.method == "PATCH":
+		data = request.data
+		serializer = serializer = User_Serializer(instance=user_obj, data=data)
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_200_OK)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# helpful function to user_delete function
+def delete_user_if_not_himself(user_obj, delete_user):
+	if user_obj != delete_user:
+		delete_user.delete()
+		return Response(status=status.HTTP_204_NO_CONTENT)
+	else:
+		return Response({"error":"You can't Delete yourself"},status=status.HTTP_403_FORBIDDEN)	
+
+
+# if he is superuser he can delete any user, except himself
+# if he is staff he can delete any user, but not staff user also, or himself
+@api_view(["DELETE"])
+@is_authenticated_user
+def user_delete(request, user_obj):
+	if request.method == "DELETE":
+		delete_user = get_object_or_404(User, username=request.data.get('delete_username'))
+		if user_obj.is_superuser:
+			return delete_user_if_not_himself(user_obj, delete_user)
+		elif user_obj.is_staff and (not delete_user.is_staff) and (not delete_user.is_superuser):
+			return delete_user_if_not_himself(user_obj, delete_user)
+		else:
+			return Response(status=status.HTTP_403_FORBIDDEN)

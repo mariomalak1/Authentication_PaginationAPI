@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from rest_framework.validators import UniqueValidator
 
 class Registration_Serializer(serializers.Serializer):
 	username = serializers.CharField(max_length=150)
@@ -30,6 +31,7 @@ class Login_Serializer(serializers.Serializer):
 		return data
 
 class User_Serializer(serializers.ModelSerializer):
+	username = serializers.CharField(required=False, validators=[UniqueValidator(queryset=User.objects.all())])
 	class Meta:
 		model = User
 		exclude = ["id", "password"]
