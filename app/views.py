@@ -1,10 +1,11 @@
+import datetime
 from rest_framework.decorators import api_view
 from rest_framework.response import Response 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login as django_login_user
 from django.contrib.auth.models import User
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator	
 from django.shortcuts import get_object_or_404
 from .serializers import Registration_Serializer, Login_Serializer, User_Serializer
 from .permissions import is_authenticated_user
@@ -17,6 +18,7 @@ def login(request):
 	serializer = Login_Serializer(data=data)
 	if serializer.is_valid():
 		user = authenticate(username=serializer.data.get("username"), password=serializer.data.get("password"))
+		django_login_user(request, user)
 		if user:
 			token = Token.objects.filter(user__username=user.username).first()
 			if not token:
